@@ -4,7 +4,11 @@ class PocketCastsAPI:
     def __init__(self, email, password):
         self.email = email
         self.password = password
-        self.login_url = "https://api.pocketcasts.com/user/login"
+        self.login_url = 'https://api.pocketcasts.com/user/login'
+        self.recommended_episodes_url = 'https://api.pocketcasts.com/discover/recommend_episodes'
+        self.listening_history_url = 'https://api.pocketcasts.com/user/history'
+        self.subscriptions_url = 'https://api.pocketcasts.com/user/podcast/list'
+        self.up_next_url = 'https://api.pocketcasts.com/up_next/list'
         self.client = requests.Session()
         self.ptoken = None
         self.api_headers = {
@@ -35,12 +39,31 @@ class PocketCastsAPI:
         self.ptoken = res["token"]
         self.api_headers['authorization'] = f'Bearer {self.ptoken}'
 
-    def get_list_of_episodes(self):
-        # Retrieve list of episodes from the API
-        json_data = {}
-        response = self.client.post('https://api.pocketcasts.com/user/history', headers=self.api_headers, json=json_data).json()
-        return response["episodes"]
+    def _call_api(self, url, response_keys = ['episodes']):
+        response = self.client.post(url, headers=self.api_headers).json()
+        if type(response_keys) == str:
+            return response[response_keys]
+        elif type(response_keys) == list and len(response_keys) == 1:
+            return response[ response_keys[0] ]
+        else:
+            return [ response[elem] for elem in response_keys ]
 
     def close_session(self):
         # Close the session
         self.client.close()
+
+    def get_listening_history(self):
+        # Retrieve list of episodes from the API
+        return self._call_api(self.listening_history_url, "episodes")
+
+    def get_recommended_episodes(self):
+        # Retrieve list of recommended episodes
+        return self._call_api(self.recommended_episodes_url, "episodes")
+
+    def get_up_next(self):
+        # Retrieve list of recommended episodes
+        return self._call_api(self.up_next_url, "episodes")
+
+    def get_subscriptions(self):
+        # Retrieve a list of podcasts that you've subscribed to
+        return self._call_api(self.subscriptions_url, [ "podcasts", "folders" ])
