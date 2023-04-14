@@ -272,3 +272,4 @@ dmypy.json
 # output files for testing
 pc*.txt
 test.py
+pyvenv.cfg
