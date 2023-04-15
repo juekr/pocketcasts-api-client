@@ -1,9 +1,7 @@
 import requests
 
 class PocketCastsAPI:
-    def __init__(self, email, password):
-        self.email = email
-        self.password = password
+    def __init__(self):
         self.login_url = 'https://api.pocketcasts.com/user/login'
         self.recommended_episodes_url = 'https://api.pocketcasts.com/discover/recommend_episodes'
         self.listening_history_url = 'https://api.pocketcasts.com/user/history'
@@ -28,11 +26,11 @@ class PocketCastsAPI:
             'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36',
         }
 
-    def login(self):
+    def login(self, email, password):
         # Perform login and retrieve token
         credentials = {
-            "email": self.email,
-            "password": self.password,
+            "email": email,
+            "password": password,
             "scope": "webplayer"
         }
         res = self.client.post(self.login_url, headers=self.api_headers, data=credentials).json()
