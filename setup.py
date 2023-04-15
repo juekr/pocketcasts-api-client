@@ -4,7 +4,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='pocketcasts-api-client',
+    name='pocketcastsapi',
     version='0.0.1',
     author='Jürgen Krauß',
     author_email='juergen@es-ist-ein-krauss.de',
@@ -16,6 +16,6 @@ setuptools.setup(
         "Bug Tracker": "https://github.com/juekr/pocketcasts-api-client/issues"
     },
     license='CC-4.0-NC-BY',
-    packages=['pocketcasts-api-client'],
+    packages=['pocketcastsapi'],
     install_requires=['requests'],
 )
