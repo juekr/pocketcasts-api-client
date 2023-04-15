@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name='pocketcastsapi',
-    version='0.0.3',
+    version='0.0.4',
     author='Jürgen Krauß',
     author_email='juergen@es-ist-ein-krauss.de',
     description='Inofficial Pocketcasts API client',

@@ -65,3 +65,8 @@ class PocketCastsAPI:
     def get_subscriptions(self):
         # Retrieve a list of podcasts that you've subscribed to
         return self._call_api(self.subscriptions_url, [ "podcasts", "folders" ])
+    
+
+
+def get_pocketcasts_api():
+    return PocketCastsAPI()
