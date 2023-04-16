@@ -59,7 +59,7 @@ class PocketCastsAPI:
                 return [ response[elem] for elem in response_keys ]
         except Exception as e:
             print(f'ERROR while fetching {url} => {e}')
-            return {}
+            return None
 
     def close_session(self):
         # Close the session
