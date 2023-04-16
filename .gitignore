@@ -137,6 +137,7 @@ downloads/*
 transcriptions/*
 __pycache*
 */config.py
+commit.sh
 
 =======
 # Byte-compiled / optimized / DLL files

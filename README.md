@@ -6,6 +6,12 @@ Shield: [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
 ## Installation
 
+```bash
+pip install git+https://github.com/juekr/pocketcasts-api-client.git
+```
+
+Then just import it like any other package. For now, there is only one available function that returns a `PocketCastsAPI` object => `pocketcastsapi.get_pocketcasts_api()`
+
 ## Use
 
 You can test API access by inserting your login credentials into `config.py` (you can copy/rename `config-example.py` as a starting point) and use something like this:
