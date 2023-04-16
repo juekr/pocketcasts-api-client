@@ -41,21 +41,25 @@ class PocketCastsAPI:
         self.api_headers['authorization'] = f'Bearer {self.ptoken}'
 
     def _call_api(self, url, response_keys = None, method='POST'):
-        if method.lower() == "post":
-            response = self.client.post(url, headers=self.api_headers).json()
-        elif method.lower() == "get":
-            response = self.client.get(url).json()
-        else:
-            print(f'Not a valid method: {method}')
-            exit(1)
-        if response_keys is None or response_keys == "":
-            return response
-        elif type(response_keys) == str:
-            return response[response_keys]
-        elif type(response_keys) == list and len(response_keys) == 1:
-            return response[ response_keys[0] ]
-        else:
-            return [ response[elem] for elem in response_keys ]
+        try:
+            if method.lower() == "post":
+                response = self.client.post(url, headers=self.api_headers).json()
+            elif method.lower() == "get":
+                response = self.client.get(url).json()
+            else:
+                print(f'Not a valid method: {method}')
+                exit(1)
+            if response_keys is None or response_keys == "":
+                return response
+            elif type(response_keys) == str:
+                return response[response_keys]
+            elif type(response_keys) == list and len(response_keys) == 1:
+                return response[ response_keys[0] ]
+            else:
+                return [ response[elem] for elem in response_keys ]
+        except Exception as e:
+            print(f'ERROR while fetching {url} => {e}')
+            return {}
 
     def close_session(self):
         # Close the session
