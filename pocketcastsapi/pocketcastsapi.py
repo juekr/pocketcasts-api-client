@@ -7,6 +7,9 @@ class PocketCastsAPI:
         self.listening_history_url = 'https://api.pocketcasts.com/user/history'
         self.subscriptions_url = 'https://api.pocketcasts.com/user/podcast/list'
         self.up_next_url = 'https://api.pocketcasts.com/up_next/list'
+        self.shownotes_baseurl = 'https://cache.pocketcasts.com/episode/show_notes/'
+        self.podcast_page_baseurl = 'https://play.pocketcasts.com/podcasts/'
+        self.podcast_fullinfo_baseurl = 'https://podcast-api.pocketcasts.com/podcast/full/'
         self.client = requests.Session()
         self.ptoken = None
         self.api_headers = {
@@ -37,9 +40,17 @@ class PocketCastsAPI:
         self.ptoken = res["token"]
         self.api_headers['authorization'] = f'Bearer {self.ptoken}'
 
-    def _call_api(self, url, response_keys = ['episodes']):
-        response = self.client.post(url, headers=self.api_headers).json()
-        if type(response_keys) == str:
+    def _call_api(self, url, response_keys = None, method='POST'):
+        if method.lower() == "post":
+            response = self.client.post(url, headers=self.api_headers).json()
+        elif method.lower() == "get":
+            response = self.client.get(url).json()
+        else:
+            print(f'Not a valid method: {method}')
+            exit(1)
+        if response_keys is None or response_keys == "":
+            return response
+        elif type(response_keys) == str:
             return response[response_keys]
         elif type(response_keys) == list and len(response_keys) == 1:
             return response[ response_keys[0] ]
@@ -65,8 +76,17 @@ class PocketCastsAPI:
     def get_subscriptions(self):
         # Retrieve a list of podcasts that you've subscribed to
         return self._call_api(self.subscriptions_url, [ "podcasts", "folders" ])
-    
 
+    def get_podcast_page(self, podcast_uuid):
+        return f'{self.podcast_page_baseurl}{podcast_uuid}'
+
+    def get_shownotes(self, episode_uuid):
+        # Retrieve shownotes for an episode uuid
+        return self._call_api(f'{self.shownotes_baseurl}{episode_uuid}', method='GET', response_keys=['show_notes'])
+
+    def get_podcastinfo(self, podcast_uuid):
+        # Retrieve all infos on a podcast
+        return self._call_api(f'{self.podcast_fullinfo_baseurl}{podcast_uuid}', method='GET', response_keys=None)
 
 def get_pocketcasts_api():
     return PocketCastsAPI()

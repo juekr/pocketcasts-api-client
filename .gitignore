@@ -136,8 +136,8 @@ include/*
 downloads/*
 transcriptions/*
 __pycache*
-<<<<<<< HEAD
->>>>>>> e039f81 (initial commit)
+*/config.py
+
 =======
 # Byte-compiled / optimized / DLL files
 __pycache__/
