@@ -28,12 +28,14 @@ json_history = pocketcasts_api.get_listening_history()
 json_up_next = pocketcasts_api.get_up_next()
 list_json_subscriptions = pocketcasts_api.get_subscriptions()
 json_recommended = pocketcasts_api.get_recommended_episodes()
+json_shownotes = pocketcasts_api.get_shownotes('7742e171-47ce-4a19-a68c-0a2be3522c7c')
+json_full_info = pocketcasts_api.get_podcastinfo('913c2f40-f480-0134-ec5e-4114446340cb')
 
 with open("pc_subscriptions.txt", "w") as file:
-    file.write(simplejson.dumps(list_json_subscriptions[1], indent=4))
+    file.write(simplejson.dumps(list_json_subscriptions[0], indent=4))
 
 with open("pc_folders.txt", "w") as file:
-    file.write(simplejson.dumps(list_json_subscriptions[0], indent=4))
+    file.write(simplejson.dumps(list_json_subscriptions[1], indent=4))
 
 with open("pc_recommended.txt", "w") as file:
     file.write(simplejson.dumps(json_recommended, indent=4))
@@ -43,6 +45,12 @@ with open("pc_history.txt", "w") as file:
 
 with open("pc_up_next.txt", "w") as file:
     file.write(simplejson.dumps(json_up_next, indent=4))
+
+with open("pc_shonotes.txt", "w") as file:
+    file.write(simplejson.dumps(json_shownotes, indent=4))
+
+with open("pc_fullinfo.txt", "w") as file:
+    file.write(simplejson.dumps(json_full_info, indent=4))
 
 pocketcasts_api.close_session()
 ```
