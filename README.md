@@ -10,7 +10,13 @@ Shield: [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 pip install git+https://github.com/juekr/pocketcasts-api-client.git
 ```
 
-Then just import it like any other package. For now, there is only one available function that returns a `PocketCastsAPI` object => `pocketcastsapi.get_pocketcasts_api()`
+Then just import it like any other package: 
+
+```python
+from pocketcastsapi import get_pocketcasts_api
+```
+
+For now, there is only one available function that returns a `PocketCastsAPI` object => `pocketcastsapi.get_pocketcasts_api()`
 
 ## Use
 
