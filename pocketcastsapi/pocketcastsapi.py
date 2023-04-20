@@ -97,6 +97,14 @@ class PocketCastsAPI:
     def get_shownotes(self, episode_uuid):
         # Retrieve shownotes for an episode uuid
         return self._call_api(f'{self.shownotes_baseurl}{episode_uuid}', method='GET', response_keys=['show_notes'])
+    
+    def get_shownotes_batch(self, episodes:list) -> list: 
+        for idx, episode in enumerate(episodes):
+            try:
+                episodes[idx]["shownotes"] = self.get_shownotes(episode["uuid"])
+            except Exception:
+                episodes[idx]["shownotes"] = None
+        return episodes
 
     def get_podcastinfo(self, podcast_uuid):
         # Retrieve all infos on a podcast
@@ -138,12 +146,7 @@ def get_recommended_episodes(email, password, limit = 2) -> list:
     if api.login(email, password) == True:
         result = api.get_recommended_episodes(limit)
         api.close_session()
-        for idx, episode in enumerate(result):
-            try:
-                result[idx]["shownotes"] = api.get_shownotes(episode["uuid"])
-            except Exception:
-                result[idx]["shownotes"] = False
-        return result
+        result = api.get_shownotes_batch(result)
     else:
         api.close_session()
         return []
