@@ -138,6 +138,11 @@ def get_recommended_episodes(email, password, limit = 2) -> list:
     if api.login(email, password) == True:
         result = api.get_recommended_episodes(limit)
         api.close_session()
+        for idx, episode in enumerate(result):
+            try:
+                result[idx]["shownotes"] = api.get_shownotes(episode["uuid"])
+            except Exception:
+                result[idx]["shownotes"] = False
         return result
     else:
         api.close_session()
