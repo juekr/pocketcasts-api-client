@@ -98,7 +98,7 @@ class PocketCastsAPI:
         # Retrieve shownotes for an episode uuid
         return self._call_api(f'{self.shownotes_baseurl}{episode_uuid}', method='GET', response_keys=['show_notes'])
 
-    def get_shownotes_batch(self, episodes:list) -> list: 
+    def get_shownotes_batch(self, episodes:list) -> list:
         for idx, episode in enumerate(episodes):
             try:
                 episodes[idx]["shownotes"] = self.get_shownotes(episode["uuid"])
@@ -125,6 +125,7 @@ def get_listening_history(email, password, limit = -1) -> list:
     api = PocketCastsAPI()
     if api.login(email, password) == True:
         result = api.get_listening_history(limit)
+        result = api.get_shownotes_batch(result)
         api.close_session()
         return result
     else:
