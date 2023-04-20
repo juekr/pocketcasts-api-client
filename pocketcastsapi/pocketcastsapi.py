@@ -38,7 +38,7 @@ class PocketCastsAPI:
             "scope": "webplayer"
         }
         res = self.client.post(self.login_url, headers=self.api_headers, data=credentials).json()
-        if "errorMessage" in res.keys(): 
+        if "errorMessage" in res.keys():
             print(f'ERROR: {res["errorMessage"]}')
             return False
         self.ptoken = res["token"]
@@ -75,9 +75,12 @@ class PocketCastsAPI:
         result = self._call_api(self.listening_history_url, "episodes")
         return result[:limit] if limit > -1 else result
 
-    def get_recommended_episodes(self):
+    def get_recommended_episodes(self, limit = 2):
         # Retrieve list of recommended episodes
-        return self._call_api(self.recommended_episodes_url, "episodes")
+        result = []
+        while len(result) < limit and len(result) < 100:
+            result += self._call_api(self.recommended_episodes_url, "episodes")
+        return result[:limit]
 
     def get_up_next(self):
         # Retrieve list of recommended episodes
@@ -113,8 +116,29 @@ def get_listening_history(email, password, limit = -1) -> list:
     """
     api = PocketCastsAPI()
     if api.login(email, password) == True:
+        result = api.get_listening_history(limit)
         api.close_session()
-        return api.get_listening_history(limit)
+        return result
+    else:
+        api.close_session()
+        return []
+
+def get_recommended_episodes(email, password, limit = 2) -> list:
+    """Fetches recommendations for a user via Pocketcast's api
+
+    Args:
+        email (_type_): authentication email
+        password (_type_): authentication password
+        limit (int, optional): number of results to return – defaults to 2 (= all; currently the maximum is 100)
+
+    Returns:
+        list: [JSON] list of podcast episodes
+    """
+    api = PocketCastsAPI()
+    if api.login(email, password) == True:
+        result = api.get_recommended_episodes(limit)
+        api.close_session()
+        return result
     else:
         api.close_session()
         return []
