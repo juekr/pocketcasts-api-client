@@ -10,6 +10,7 @@ class PocketCastsAPI:
         self.shownotes_baseurl = 'https://cache.pocketcasts.com/episode/show_notes/'
         self.podcast_page_baseurl = 'https://play.pocketcasts.com/podcasts/'
         self.podcast_fullinfo_baseurl = 'https://podcast-api.pocketcasts.com/podcast/full/'
+        self.podcast_starred_url = 'https://api.pocketcasts.com/user/starred'
         self.client = requests.Session()
         self.ptoken = None
         self.api_headers = {
@@ -37,8 +38,12 @@ class PocketCastsAPI:
             "scope": "webplayer"
         }
         res = self.client.post(self.login_url, headers=self.api_headers, data=credentials).json()
+        if "errorMessage" in res.keys(): 
+            print(f'ERROR: {res["errorMessage"]}')
+            return False
         self.ptoken = res["token"]
         self.api_headers['authorization'] = f'Bearer {self.ptoken}'
+        return True
 
     def _call_api(self, url, response_keys = None, method='POST'):
         try:
@@ -65,9 +70,10 @@ class PocketCastsAPI:
         # Close the session
         self.client.close()
 
-    def get_listening_history(self):
+    def get_listening_history(self, limit = -1):
         # Retrieve list of episodes from the API
-        return self._call_api(self.listening_history_url, "episodes")
+        result = self._call_api(self.listening_history_url, "episodes")
+        return result[:limit] if limit > -1 else result
 
     def get_recommended_episodes(self):
         # Retrieve list of recommended episodes
@@ -82,6 +88,7 @@ class PocketCastsAPI:
         return self._call_api(self.subscriptions_url, [ "podcasts", "folders" ])
 
     def get_podcast_page(self, podcast_uuid):
+        # Retrieve podcast details
         return f'{self.podcast_page_baseurl}{podcast_uuid}'
 
     def get_shownotes(self, episode_uuid):
@@ -92,5 +99,22 @@ class PocketCastsAPI:
         # Retrieve all infos on a podcast
         return self._call_api(f'{self.podcast_fullinfo_baseurl}{podcast_uuid}', method='GET', response_keys=None)
 
-def get_pocketcasts_api():
-    return PocketCastsAPI()
+
+def get_listening_history(email, password, limit = -1) -> list:
+    """Fetches a user's listening history via Pocketcast's api
+
+    Args:
+        email (_type_): authentication email
+        password (_type_): authentication password
+        limit (int, optional): number of results to return – defaults to -1 (= all; currently API returns a maximum of 100)
+
+    Returns:
+        list: [JSON] list of podcast episodes
+    """
+    api = PocketCastsAPI()
+    if api.login(email, password) == True:
+        api.close_session()
+        return api.get_listening_history(limit)
+    else:
+        api.close_session()
+        return []
