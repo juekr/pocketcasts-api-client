@@ -1,1 +1,2 @@
-from .pocketcastsapi import get_pocketcasts_api
+from .pocketcastsapi import get_recommended_episodes
+from .pocketcastsapi import get_listening_history
