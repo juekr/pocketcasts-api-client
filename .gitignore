@@ -138,6 +138,7 @@ transcriptions/*
 __pycache*
 */config.py
 commit.sh
+*/listening.history
 
 =======
 # Byte-compiled / optimized / DLL files

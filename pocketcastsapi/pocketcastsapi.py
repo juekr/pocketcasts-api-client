@@ -1,4 +1,5 @@
-import requests
+import requests, os, json
+from datetime import date
 
 class PocketCastsAPI:
     def __init__(self):
@@ -70,9 +71,11 @@ class PocketCastsAPI:
         # Close the session
         self.client.close()
 
-    def get_listening_history(self, limit = -1):
+    def get_listening_history(self, limit = -1, history_file_for_comparison = None):
         # Retrieve list of episodes from the API
         result = self._call_api(self.listening_history_url, "episodes")
+        if history_file_for_comparison is not None:
+            result = self._compare_history_to_file(result, history_file_for_comparison)
         return result[:limit] if limit > -1 else result
 
     def get_recommended_episodes(self, limit = 2):
@@ -110,9 +113,63 @@ class PocketCastsAPI:
         # Retrieve all infos on a podcast
         return self._call_api(f'{self.podcast_fullinfo_baseurl}{podcast_uuid}', method='GET', response_keys=None)
 
+    def _compare_history_to_file(self, episodes: list, file: str) -> list:
+        # History file saves uuids along with the date of their first appearance in the listening history.
+        # Function writes json/dict with dates (YYY-MM-DD) as keys and a list of episodes as values to file.
+        # It returns a sorted episode list, enriched with date of first appearances in a user's historyfile.
 
-def get_listening_history(email, password, limit = -1) -> list:
+        # If history file does not exists => all episodes appear to appear for the first time today
+        if not os.path.isfile(file):
+            return { str(date.today()): episodes }
+
+        # Load histors from file and convert it into dict/json
+        try:
+            with open(file, "r") as fpointer:
+                file_history = json.loads(fpointer.read())
+        except Exception:
+            print("Readin json history failed.")
+            exit(1)
+
+        for idx, e in enumerate(episodes):
+            for day in file_history.keys():
+                if e["uuid"] in file_history[day]:
+                    episodes[idx]["firstAppeared"] = day
+            if "firstAppeared" not in e.keys():
+                episodes[idx]["firstAppeared"] = str(date.today())
+
+        self._write_appearances_to_history_file(episodes, file)
+        return self._sort_by_listening_date(episodes)
+
+
+    def _write_appearances_to_history_file(self, episodes: list, file: str):
+        mapped_dates = {}
+        episodes = self._ensure_first_appeared_date(episodes)
+        for e in episodes:
+            if e["firstAppeared"] not in mapped_dates.keys():
+                mapped_dates[e["firstAppeared"]] = [e["uuid"]]
+            else:
+                mapped_dates[e["firstAppeared"]].append(e["uuid"])
+        try:
+            with open(file, "w") as fpointer:
+                fpointer.write(json.dumps(mapped_dates))
+        except Exception:
+            print("History file path cannot be written.")
+            exit(1)
+
+    def _ensure_first_appeared_date(self, episodes):
+        for idx, e in enumerate(episodes):
+            if not "firstAppeared" in e.keys():
+                episodes[idx]["firstAppeared"] = str(date.today())
+        return episodes
+
+    def _sort_by_listening_date(self, episodes: list) -> list:
+        episodes = self._ensure_first_appeared_date(episodes)
+        return sorted(episodes, key=lambda d: d['firstAppeared'], reverse=True)
+
+
+def get_listening_history(email, password, limit = -1, historyfile = None) -> list:
     """Fetches a user's listening history via Pocketcast's api
+       (optionally compares it against a history file and sorts episodes accordingly)
 
     Args:
         email (_type_): authentication email
@@ -124,7 +181,7 @@ def get_listening_history(email, password, limit = -1) -> list:
     """
     api = PocketCastsAPI()
     if api.login(email, password) == True:
-        result = api.get_listening_history(limit)
+        result = api.get_listening_history(limit, historyfile)
         result = api.get_shownotes_batch(result)
         api.close_session()
         return result
