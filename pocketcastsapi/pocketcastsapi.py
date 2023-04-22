@@ -74,7 +74,9 @@ class PocketCastsAPI:
     def get_listening_history(self, limit = -1, history_file_for_comparison = None):
         # Retrieve list of episodes from the API
         result = self._call_api(self.listening_history_url, "episodes")
-        if history_file_for_comparison is not None:
+
+        # combine it with episodes and episode info from history file (if requested and possible)
+        if history_file_for_comparison is not None and os.path.isfile(history_file_for_comparison):
             result = self._compare_history_to_file(result, history_file_for_comparison)
         return result[:limit] if limit > -1 else result
 
@@ -114,9 +116,10 @@ class PocketCastsAPI:
         return self._call_api(f'{self.podcast_fullinfo_baseurl}{podcast_uuid}', method='GET', response_keys=None)
 
     def _compare_history_to_file(self, episodes: list, file: str) -> list:
-        # History file saves uuids along with the date of their first appearance in the listening history.
+        # History file saves ~~uuids~~ episodes along with the date of their first appearance in the listening history.
         # Function writes json/dict with dates (YYY-MM-DD) as keys and a list of episodes as values to file.
         # It returns a sorted episode list, enriched with date of first appearances in a user's historyfile.
+        # Important: It adds episodes from the history file, even if they are not in listening history (anymore)
 
         # If history file does not exists => all episodes appear to appear for the first time today
         if not os.path.isfile(file):
@@ -127,31 +130,40 @@ class PocketCastsAPI:
             with open(file, "r") as fpointer:
                 file_history = json.loads(fpointer.read())
         except Exception:
-            print("Readin json history failed.")
-            exit(1)
+            file_history = { str(date.today()): episodes }
+            print("Reading json history failed.")
+            # exit(1)
 
+        # adding listening date to episodes, add "today" if not in history file
         for idx, e in enumerate(episodes):
             for day in file_history.keys():
-                if e["uuid"] in file_history[day]:
+                if e["uuid"] in [elem["uuid"] for elem in file_history[day]]:
                     episodes[idx]["firstAppeared"] = day
             if "firstAppeared" not in e.keys():
                 episodes[idx]["firstAppeared"] = str(date.today())
 
+        # adding leftover episodes from history file
+        for day in file_history.keys():
+            for filed_episode in file_history[day]:
+                if filed_episode["uuid"] not in [ elem["uuid"] for elem in episodes ]:
+                    episodes.append(filed_episode)
+
+        # write the current version to file
         self._write_appearances_to_history_file(episodes, file)
         return self._sort_by_listening_date(episodes)
 
 
     def _write_appearances_to_history_file(self, episodes: list, file: str):
-        mapped_dates = {}
+        mapped_to_dates = {}
         episodes = self._ensure_first_appeared_date(episodes)
         for e in episodes:
-            if e["firstAppeared"] not in mapped_dates.keys():
-                mapped_dates[e["firstAppeared"]] = [e["uuid"]]
+            if e["firstAppeared"] not in mapped_to_dates.keys():
+                mapped_to_dates[e["firstAppeared"]] = [e]
             else:
-                mapped_dates[e["firstAppeared"]].append(e["uuid"])
+                mapped_to_dates[e["firstAppeared"]].append(e)
         try:
             with open(file, "w") as fpointer:
-                fpointer.write(json.dumps(mapped_dates))
+                fpointer.write(json.dumps(mapped_to_dates))
         except Exception:
             print("History file path cannot be written.")
             exit(1)
@@ -174,7 +186,7 @@ def get_listening_history(email, password, limit = -1, historyfile = None) -> li
     Args:
         email (_type_): authentication email
         password (_type_): authentication password
-        limit (int, optional): number of results to return – defaults to -1 (= all; currently API returns a maximum of 100)
+        limit (int, optional): number of results to return – defaults to -1 (= all; currently API returns a maximum of 100, but if history_file is provided, it can be more)
 
     Returns:
         list: [JSON] list of podcast episodes
