@@ -76,7 +76,7 @@ class PocketCastsAPI:
         result = self._call_api(self.listening_history_url, "episodes")
 
         # combine it with episodes and episode info from history file (if requested and possible)
-        if history_file_for_comparison is not None and os.path.isfile(history_file_for_comparison):
+        if history_file_for_comparison is not None:
             result = self._compare_history_to_file(result, history_file_for_comparison)
         return result[:limit] if limit > -1 else result
 
@@ -123,7 +123,13 @@ class PocketCastsAPI:
 
         # If history file does not exists => all episodes appear to appear for the first time today
         if not os.path.isfile(file):
-            return { str(date.today()): episodes }
+            history = { str(date.today()): episodes }
+            try:
+                with open (file, "w") as fpointer:
+                    fpointer.write(json.dumps(history))
+            except Exception as e:
+                print(e)
+                exit(1)
 
         # Load histors from file and convert it into dict/json
         try:
