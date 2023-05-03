@@ -12,8 +12,6 @@ class PocketCastsAPI:
         self.podcast_page_baseurl = 'https://play.pocketcasts.com/podcasts/'
         self.podcast_fullinfo_baseurl = 'https://podcast-api.pocketcasts.com/podcast/full/'
         self.podcast_starred_url = 'https://api.pocketcasts.com/user/starred'
-        self.client = requests.Session()
-        self.ptoken = None
         self.api_headers = {
             'authority': 'api.pocketcasts.com',
             'accept': '*/*',
@@ -30,6 +28,8 @@ class PocketCastsAPI:
             'sec-gpc': '1',
             'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36',
         }
+        self.client = requests.Session()
+        self.ptoken = None
 
     def login(self, email, password):
         # Perform login and retrieve token
@@ -47,6 +47,7 @@ class PocketCastsAPI:
         return True
 
     def _call_api(self, url, response_keys = None, method='POST'):
+        # Perform the API call
         try:
             if method.lower() == "post":
                 response = self.client.post(url, headers=self.api_headers).json()

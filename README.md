@@ -16,9 +16,31 @@ Then just import it like any other package:
 from pocketcastsapi import get_pocketcasts_api
 ```
 
-For now, there is only one available function that returns a `PocketCastsAPI` object => `pocketcastsapi.get_pocketcasts_api()`
+For now, there is one class and two functions that you can use:
 
-## Use
+- `PocketCastsAPI`
+- `get_listening_history()`
+- `get_recommended_episodes()`
+
+## The PocketCastsAPI class
+
+```python
+from pocketcastsapi import PocketCastsAPI
+import config
+
+pocketcasts_api = PocketCastsAPI(config.email, config.password)
+pocketcasts_api.login()
+
+# ...
+
+pocketcasts_api.close_session()
+```
+
+## get_listening_history
+
+## get_recommended_episodes
+
+## Example
 
 You can test API access by inserting your login credentials into `config.py` (you can copy/rename `config-example.py` as a starting point) and use something like this:
 
