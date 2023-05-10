@@ -12,6 +12,11 @@ class PocketCastsAPI:
         self.podcast_page_baseurl = 'https://play.pocketcasts.com/podcasts/'
         self.podcast_fullinfo_baseurl = 'https://podcast-api.pocketcasts.com/podcast/full/'
         self.podcast_starred_url = 'https://api.pocketcasts.com/user/starred'
+
+        self.top_charts_url = 'https://static.pocketcasts.com/discover/json/popular_world.json'
+        self.featured_url = 'https://static.pocketcasts.com/discover/json/featured.json'
+        self.trending_url = 'https://static.pocketcasts.com/discover/json/trending.json'
+
         self.api_headers = {
             'authority': 'api.pocketcasts.com',
             'accept': '*/*',
@@ -88,6 +93,11 @@ class PocketCastsAPI:
             result += self._call_api(self.recommended_episodes_url, "episodes")
         return result[:limit]
 
+    def get_starred_episodes(self, limit = -1):
+        # Retrieve list of starred episodes
+        result = self._call_api(self.podcast_starred_url, "episodes")
+        return result if limit == -1 else result[:limit]
+
     def get_up_next(self):
         # Retrieve list of recommended episodes
         return self._call_api(self.up_next_url, "episodes")
@@ -102,7 +112,11 @@ class PocketCastsAPI:
 
     def get_shownotes(self, episode_uuid):
         # Retrieve shownotes for an episode uuid
-        return self._call_api(f'{self.shownotes_baseurl}{episode_uuid}', method='GET', response_keys=['show_notes'])
+        return self._call_api(
+            f'{self.shownotes_baseurl}{episode_uuid}',
+            method='GET',
+            response_keys=['show_notes']
+        )
 
     def get_shownotes_batch(self, episodes:list) -> list:
         for idx, episode in enumerate(episodes):
@@ -114,7 +128,11 @@ class PocketCastsAPI:
 
     def get_podcastinfo(self, podcast_uuid):
         # Retrieve all infos on a podcast
-        return self._call_api(f'{self.podcast_fullinfo_baseurl}{podcast_uuid}', method='GET', response_keys=None)
+        return self._call_api(
+            f'{self.podcast_fullinfo_baseurl}{podcast_uuid}',
+            method='GET',
+            response_keys=None
+        )
 
     def _compare_history_to_file(self, episodes: list, file: str) -> list:
         # History file saves ~~uuids~~ episodes along with the date of their first appearance in the listening history.
@@ -143,15 +161,15 @@ class PocketCastsAPI:
 
         # adding listening date to episodes, add "today" if not in history file
         for idx, e in enumerate(episodes):
-            for day in file_history.keys():
+            for day in file_history:
                 if e["uuid"] in [elem["uuid"] for elem in file_history[day]]:
                     episodes[idx]["firstAppeared"] = day
             if "firstAppeared" not in e.keys():
                 episodes[idx]["firstAppeared"] = str(date.today())
 
         # adding leftover episodes from history file
-        for day in file_history.keys():
-            for filed_episode in file_history[day]:
+        for value in file_history.values():
+            for filed_episode in value:
                 if filed_episode["uuid"] not in [ elem["uuid"] for elem in episodes ]:
                     episodes.append(filed_episode)
 
@@ -164,10 +182,10 @@ class PocketCastsAPI:
         mapped_to_dates = {}
         episodes = self._ensure_first_appeared_date(episodes)
         for e in episodes:
-            if e["firstAppeared"] not in mapped_to_dates.keys():
-                mapped_to_dates[e["firstAppeared"]] = [e]
-            else:
+            if e["firstAppeared"] in mapped_to_dates:
                 mapped_to_dates[e["firstAppeared"]].append(e)
+            else:
+                mapped_to_dates[e["firstAppeared"]] = [e]
         try:
             with open(file, "w") as fpointer:
                 fpointer.write(json.dumps(mapped_to_dates))
@@ -177,7 +195,7 @@ class PocketCastsAPI:
 
     def _ensure_first_appeared_date(self, episodes):
         for idx, e in enumerate(episodes):
-            if not "firstAppeared" in e.keys():
+            if "firstAppeared" not in e.keys():
                 episodes[idx]["firstAppeared"] = str(date.today())
         return episodes
 
@@ -188,7 +206,7 @@ class PocketCastsAPI:
 
 def get_listening_history(email, password, limit = -1, historyfile = None) -> list:
     """Fetches a user's listening history via Pocketcast's api
-       (optionally compares it against a history file and sorts episodes accordingly)
+        (optionally compares it against a history file and sorts episodes accordingly)
 
     Args:
         email (_type_): authentication email
@@ -199,7 +217,7 @@ def get_listening_history(email, password, limit = -1, historyfile = None) -> li
         list: [JSON] list of podcast episodes
     """
     api = PocketCastsAPI()
-    if api.login(email, password) == True:
+    if api.login(email, password) is True:
         result = api.get_listening_history(limit, historyfile)
         result = api.get_shownotes_batch(result)
         api.close_session()
@@ -214,14 +232,36 @@ def get_recommended_episodes(email, password, limit = 2) -> list:
     Args:
         email (_type_): authentication email
         password (_type_): authentication password
-        limit (int, optional): number of results to return – defaults to 2 (= all; currently the maximum is 100)
+        limit (int, optional): number of results to return – defaults to 2 (currently the maximum is 100)
 
     Returns:
         list: [JSON] list of podcast episodes
     """
     api = PocketCastsAPI()
-    if api.login(email, password) == True:
+    if api.login(email, password) is True:
         result = api.get_recommended_episodes(limit)
+        result = api.get_shownotes_batch(result)
+        api.close_session()
+        return result
+    else:
+        api.close_session()
+        return []
+
+
+def get_starred_episodes(email, password, limit = -1) -> list:
+    """Fetches starred episodes for a user via Pocketcast's api
+
+    Args:
+        email (_type_): authentication email
+        password (_type_): authentication password
+        limit (int, optional): number of results to return – defaults to -1 (= all)
+
+    Returns:
+        list: [JSON] list of podcast episodes
+    """
+    api = PocketCastsAPI()
+    if api.login(email, password) is True:
+        result = api.get_starred_episodes(limit)
         result = api.get_shownotes_batch(result)
         api.close_session()
         return result
