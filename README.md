@@ -67,7 +67,7 @@ list of episodes you've listened to some time in the past.
 If a `historyfile` is provided – and that really only makes sense, if you call the API regularly –, then
 the list is saved the first time (along with the current date), and on each subsequent call it checks whether an
 episode is already in the list or is a new addition to be saved with the then current date. So if you call the API,
-let's say, once a day, you over time get a daily log of podcast eisodes you've listened to.
+let's say, once a day, you over time get a daily log of podcast episodes you've listened to.
 
 The API only delivers 100 results (even when using `-1` as `limit`), but it can be more if the `historyfile` is being used.
 
