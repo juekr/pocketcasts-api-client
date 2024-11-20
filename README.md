@@ -74,15 +74,23 @@ The API only delivers 100 results (even when using `-1` as `limit`), but it can 
 The function makes an extra call to retrieve the shownotes for each episode returned. If that is not what you want,
 you can use the `PocketCastsAPI` class to fetch the listening history.
 
-### get_recommended_episodes()
+### get_recommended_episodes(email, password,limit=2)
 
 The function makes an extra call to retrieve the shownotes for each episode returned. If that is not what you want,
 you can use the `PocketCastsAPI` class to fetch the listening history.
 
-### get_starred_episodes()
+### get_starred_episodes(email, password)
 
 The function makes an extra call to retrieve the shownotes for each episode returned. If that is not what you want,
 you can use the `PocketCastsAPI` class to fetch the listening history.
+
+### subscribe_to_podcast(email, password, uuid)
+
+You can subscribe to podcasts in your account with this function – provided that you know the `uuid`. Sadly the API does not return a success/failed status – you can build that yourself by checking the list of podcasts you've subscribed to afterwards.
+
+### unsubscribe_from_podcast(email, password, uuid)
+
+You can unsubscribe from podcasts in your account with this function – provided that you know the `uuid`. Sadly the API does not return a success/failed status – you can build that yourself by checking the list of podcasts you've subscribed to afterwards.
 
 ## License
 

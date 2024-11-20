@@ -278,3 +278,50 @@ def get_starred_episodes(email, password, limit = -1) -> list:
     else:
         api.close_session()
         return []
+
+def subscribe_to_podcast(email, password, uuid)->None:
+    """
+    Subscribes a user to a podcast using their email and password.
+
+    This function logs into the PocketCasts API with the provided credentials and subscribes the user to the podcast identified by the given UUID. It ensures that the session is properly closed after the operation.
+
+    Args:
+        email (str): The email address of the user.
+        password (str): The password of the user.
+        uuid (str): The unique identifier of the podcast to subscribe to.
+
+    Returns:
+        None
+    """
+
+    api = PocketCastsAPI()
+    if api.login(email, password) is True:
+        api.subscribe_by_uuid(uuid)
+        api.close_session()
+        return
+    else:
+        api.close_session()
+        return
+    
+def unsubscribe_from_podcast(email, password, uuid)->None:
+    """
+    Unsubscribes a user from a podcast using their email and password.
+
+    This function logs into the PocketCasts API with the provided credentials and unsubscribes the user from the podcast identified by the given UUID. It ensures that the session is properly closed after the operation.
+
+    Args:
+        email (str): The email address of the user.
+        password (str): The password of the user.
+        uuid (str): The unique identifier of the podcast to unsubscribe from.
+
+    Returns:
+        None
+    """
+    api = PocketCastsAPI()
+    if api.login(email, password) is True:
+        api.unsubscribe_by_uuid(uuid)
+        api.close_session()
+        return
+    else:
+        api.close_session()
+        return
