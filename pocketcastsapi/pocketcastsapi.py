@@ -12,6 +12,8 @@ class PocketCastsAPI:
         self.podcast_page_baseurl = 'https://play.pocketcasts.com/podcasts/'
         self.podcast_fullinfo_baseurl = 'https://podcast-api.pocketcasts.com/podcast/full/'
         self.podcast_starred_url = 'https://api.pocketcasts.com/user/starred'
+        self.podcast_subscribe_url = 'https://api.pocketcasts.com/user/podcast/subscribe'
+        self.podcast_unsubscribe_url = 'https://api.pocketcasts.com/user/podcast/unsubscribe'
 
         self.top_charts_url = 'https://static.pocketcasts.com/discover/json/popular_world.json'
         self.featured_url = 'https://static.pocketcasts.com/discover/json/featured.json'
@@ -51,11 +53,11 @@ class PocketCastsAPI:
         self.api_headers['authorization'] = f'Bearer {self.ptoken}'
         return True
 
-    def _call_api(self, url, response_keys = None, method='POST'):
+    def _call_api(self, url, response_keys = None, method='POST', params={}):
         # Perform the API call
         try:
             if method.lower() == "post":
-                response = self.client.post(url, headers=self.api_headers).json()
+                response = self.client.post(url, headers=self.api_headers, data=params if len(params) > 0 else None).json()
             elif method.lower() == "get":
                 response = self.client.get(url).json()
             else:
@@ -76,6 +78,14 @@ class PocketCastsAPI:
     def close_session(self):
         # Close the session
         self.client.close()
+
+    def subscribe_by_uuid(self, uuid):
+        result = self._call_api(self.podcast_subscribe_url, method="POST", params={'uuid': uuid})
+        return
+    
+    def unsubscribe_by_uuid(self, uuid):
+        result = self._call_api(self.podcast_unsubscribe_url, method="POST", params={'uuid': uuid})
+        return
 
     def get_listening_history(self, limit = -1, history_file_for_comparison = None):
         # Retrieve list of episodes from the API
